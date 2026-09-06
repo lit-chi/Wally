@@ -22,4 +22,6 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE timestamp >= :start AND timestamp < :end ORDER BY timestamp DESC")
     fun getTodayExpenses(start: Long, end: Long): Flow<List<Expense>>
+
+
 }

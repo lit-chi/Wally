@@ -14,22 +14,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.wally.data.Due
 import com.example.wally.data.Expense
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+
 
 @Composable
-fun PaymentRow(expense: Expense) {
+fun PaymentRow(
+    expense: Expense,
+    onLongClick: () -> Unit
+) {
     TransactionRow(
-        title = if (expense.description.isBlank()) {
+        title = if(expense.description.isBlank()) {
             expense.tag
         } else {
             expense.description
         },
         subtitle = expense.tag,
-        amount = expense.amount
+        amount = expense.amount,
+        onLongClick = onLongClick
     )
 }
 
 @Composable
-fun DueRow(due: Due) {
+fun DueRow(
+    due: Due,
+    onLongClick: () -> Unit
+) {
     TransactionRow(
         title = due.name,
         subtitle = if (due.description.isBlank()) {
@@ -37,7 +50,8 @@ fun DueRow(due: Due) {
         } else {
             "${due.description} • ${due.tag}"
         },
-        amount = due.amount
+        amount = due.amount,
+        onLongClick = onLongClick
     )
 }
 
@@ -45,7 +59,8 @@ fun DueRow(due: Due) {
 private fun TransactionRow(
     title: String,
     subtitle: String,
-    amount: Int
+    amount: Int,
+    onLongClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -63,7 +78,12 @@ private fun TransactionRow(
                 .padding(
                     horizontal = 16.dp,
                     vertical = 15.dp
-                ),
+                )
+                .combinedClickable(
+                    onClick = {},
+                    onLongClick = onLongClick
+                )
+            ,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(

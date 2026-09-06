@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.wally.data.*
 import kotlinx.coroutines.launch
+import org.w3c.dom.Text
 import java.util.Calendar
 
 enum class EntryMode {
@@ -51,6 +52,8 @@ fun HomeScreen(
     var personName by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var selectedTag by remember { mutableStateOf<String?>(null) }
+    var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
+    var dueToDelete by remember {mutableStateOf<Due?>(null)}
 
     val tags by tagDao.getAllTags()
         .collectAsStateWithLifecycle(initialValue = emptyList())
@@ -231,7 +234,10 @@ fun HomeScreen(
                         expenses,
                         key = { it.id }
                     ) { expense ->
-                        PaymentRow(expense)
+                        PaymentRow(
+                            expense = expense,
+                            onLongClick = {expenseToDelete = expense}
+                        )
                     }
 
                 } else {
@@ -240,7 +246,10 @@ fun HomeScreen(
                         dues,
                         key = { it.id }
                     ) { due ->
-                        DueRow(due)
+                        DueRow(
+                            due=due,
+                            onLongClick = {dueToDelete = due}
+                        )
                     }
                 }
             }
@@ -275,6 +284,30 @@ fun HomeScreen(
 
             onDismiss = {
                 showTagSelector = false
+            }
+        )
+    }
+    if(expenseToDelete != null){
+        AlertDialog(
+            onDismissRequest = {expenseToDelete = null},
+            title = {Text("Delete ${expenseToDelete?.description} ?")},
+            dismissButton = {
+                TextButton(onClick = {expenseToDelete = null }) {
+                    Text("CANCEL")
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val expense = expenseToDelete ?: return@TextButton
+                        scope.launch {
+                            expenseDao.deleteExpense(expense.id)
+                        }
+                        expenseToDelete = null
+                    }
+                ){
+                    Text("DELETE")
+                }
             }
         )
     }

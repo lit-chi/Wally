@@ -1,24 +1,32 @@
 package com.example.wally.ui
 
+
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-
+import androidx.compose.material.icons.outlined.ChevronLeft
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.wally.data.*
 import kotlinx.coroutines.launch
-import org.w3c.dom.Text
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.time.DayOfWeek
+
 
 enum class EntryMode {
     PAYMENT, DUE
@@ -54,6 +62,15 @@ fun HomeScreen(
     var selectedTag by remember { mutableStateOf<String?>(null) }
     var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
     var dueToDelete by remember {mutableStateOf<Due?>(null)}
+
+    var selectedFilter by remember {mutableStateOf("Day")}
+    var selectedDate by remember {mutableStateOf(LocalDate.now())}
+    var selectedWeekStart by remember {
+        mutableStateOf(
+            LocalDate.now().with(DayOfWeek.MONDAY)
+        )
+    }
+
 
     val tags by tagDao.getAllTags()
         .collectAsStateWithLifecycle(initialValue = emptyList())
@@ -93,6 +110,25 @@ fun HomeScreen(
 
     val peopleDue by dueDao.getPeopleDue()
         .collectAsStateWithLifecycle(initialValue = 0)
+
+    fun goNext(){
+        if(selectedFilter == "Day"){
+            selectedDate = selectedDate.plusDays(1)
+        }
+        else{
+            selectedWeekStart = selectedWeekStart.plusDays(7)
+        }
+    }
+
+    fun goPrevious(){
+        if(selectedFilter == "Day"){
+            selectedDate = selectedDate.minusDays(1)
+        }
+        else{
+            selectedWeekStart = selectedWeekStart.minusDays(7)
+        }
+    }
+
 
     if (showStats) {
         StatsScreen(
@@ -210,19 +246,141 @@ fun HomeScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            Text(
-                text = if (mode == EntryMode.PAYMENT) {
-                    "EXPENSES"
-                } else {
-                    "DUES"
-                },
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (mode == EntryMode.PAYMENT) {
+                        "EXPENSES"
+                    } else {
+                        "DUES"
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.weight(1f)
+                )
+
+                val selectedOffset by animateDpAsState(
+                    targetValue = if (selectedFilter == "Day") 0.dp else 60.dp,
+                    label = "selected filter"
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(36.dp)
+                            .padding(2.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .offset(x = selectedOffset)
+                                .width(60.dp)
+                                .fillMaxHeight()
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(50)
+                                )
+                        )
+
+                        // DAY / WEEK buttons
+                        Row(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clickable {
+                                        selectedFilter = "Day"
+                                        selectedDate = selectedWeekStart
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "DAY",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (selectedFilter == "Day") {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clickable {
+                                        selectedFilter = "Week"
+                                        selectedWeekStart = selectedDate.with(DayOfWeek.MONDAY)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "WEEK",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (selectedFilter == "Week") {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+
 
             Spacer(modifier = Modifier.height(8.dp))
+            val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { goPrevious() },
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ChevronLeft,
+                        contentDescription = "Previous"
+                    )
+                }
+
+                Text(
+                    text = if (selectedFilter == "Day") {
+                                selectedDate.format(dateFormatter)
+                            }
+                            else {
+                                "${selectedWeekStart.format(DateTimeFormatter.ofPattern("dd MMM"))} – " +
+                                "${selectedWeekStart.plusDays(6).format(DateTimeFormatter.ofPattern("dd MMM"))}"
+                            },
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+
+                IconButton(
+                    onClick = { goNext() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ChevronRight,
+                        contentDescription = "Next"
+                    )
+                }
+            }
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -313,6 +471,7 @@ fun HomeScreen(
     }
 
 }
+
 
 
 

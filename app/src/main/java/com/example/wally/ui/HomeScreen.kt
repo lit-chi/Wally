@@ -508,6 +508,31 @@ fun HomeScreen(
             }
         )
     }
+    if(dueToDelete != null){
+        AlertDialog(
+            onDismissRequest = {dueToDelete = null},
+            title = {Text("Delete ${dueToDelete?.description} ?")},
+            dismissButton = {
+                TextButton(onClick = {dueToDelete = null }) {
+                    Text("CANCEL")
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val due = dueToDelete ?: return@TextButton
+                        scope.launch {
+                            dueDao.deleteDue(due.id)
+                        }
+                        dueToDelete = null
+                    }
+                ){
+                    Text("DELETE")
+                }
+            }
+        )
+    }
+
 
 }
 

@@ -1,0 +1,143 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "ai.botisan",
+    "module": "xlsxwriter-android",
+    "version": "0.2.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "net.java.dev.jna",
+          "module": "jna",
+          "version": {
+            "requires": "5.19.1"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "jna",
+              "type": "aar",
+              "extension": "aar"
+            }
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "xlsxwriter-android-0.2.0.aar",
+          "url": "xlsxwriter-android-0.2.0.aar",
+          "size": 1967670,
+          "sha512": "fca8004bcd96cc6d00cc7750490c679cb96117865607bd950954b935ea7d62cfb35b2cba17f4b809f61645bc55ffcfe6ec7bfec18ba90fbde4b641fa63a9ab45",
+          "sha256": "6724003bff1f9bc030e0cd42fab67fe73c6471b72770c0ebddbf7a30a46acd01",
+          "sha1": "7a1f96d11515380ad3b609abf5538fe93fb9bf5f",
+          "md5": "3c4fcbf6e73865d8fde4e09a25162952"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "androidx.annotation",
+          "module": "annotation",
+          "version": {
+            "requires": "1.9.1"
+          }
+        },
+        {
+          "group": "net.java.dev.jna",
+          "module": "jna",
+          "version": {
+            "requires": "5.19.1"
+          },
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ],
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "jna",
+              "type": "aar",
+              "extension": "aar"
+            }
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "xlsxwriter-android-0.2.0.aar",
+          "url": "xlsxwriter-android-0.2.0.aar",
+          "size": 1967670,
+          "sha512": "fca8004bcd96cc6d00cc7750490c679cb96117865607bd950954b935ea7d62cfb35b2cba17f4b809f61645bc55ffcfe6ec7bfec18ba90fbde4b641fa63a9ab45",
+          "sha256": "6724003bff1f9bc030e0cd42fab67fe73c6471b72770c0ebddbf7a30a46acd01",
+          "sha1": "7a1f96d11515380ad3b609abf5538fe93fb9bf5f",
+          "md5": "3c4fcbf6e73865d8fde4e09a25162952"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseSourcePublication",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "xlsxwriter-android-0.2.0-sources.jar",
+          "url": "xlsxwriter-android-0.2.0-sources.jar",
+          "size": 15732,
+          "sha512": "920e8541679f5fbf1dfc829bc18254e606589a3c3bda4b4194c07684b69efe6e35b6e847a53742ac04cb31a09384545bae939c80f2d79dd26f6129bb7a6274de",
+          "sha256": "897520ab3a37e9506d4d3f004e8cd5524b99199a48dae237d91f6dd274949c3d",
+          "sha1": "290d53b50dac0ee0a43eb13946252fe5c7ea8c8a",
+          "md5": "23c81dd2c9ec664cc004f1b04b7ce0a0"
+        }
+      ]
+    }
+  ]
+}

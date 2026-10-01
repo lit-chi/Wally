@@ -58,7 +58,9 @@ fun LocalDate.toMillis(): Long {
 fun HomeScreen(
     expenseDao: ExpenseDao,
     dueDao: DueDao,
-    tagDao: TagDao
+    tagDao: TagDao,
+    onConnectGoogleDrive: () -> Unit
+
 ) {
     var mode by remember { mutableStateOf(EntryMode.PAYMENT) }
     var showStats by remember { mutableStateOf(false) }
@@ -161,7 +163,8 @@ fun HomeScreen(
             todayPayments = todayPayments,
             todayDues = todayDues,
             peopleDue = peopleDue,
-            onBack = { showStats = false }
+            onBack = { showStats = false },
+            onConnectGoogleDrive = onConnectGoogleDrive
         )
         return
     }

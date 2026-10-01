@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation("com.squareup.okhttp3:okhttp:5.5.0")
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -68,4 +69,6 @@ dependencies {
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("ai.botisan:xlsxwriter-android:0.2.0")
+
+    implementation("com.google.android.gms:play-services-auth:22.0.0")
 }

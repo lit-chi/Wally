@@ -7,6 +7,8 @@ import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.Scope
+import android.accounts.Account
+import com.google.android.gms.auth.api.identity.RevokeAccessRequest
 
 class GoogleDriveAuth(
     private val activity: ComponentActivity
@@ -108,5 +110,35 @@ class GoogleDriveAuth(
         }
 
         onSuccess?.invoke(accessToken)
+    }
+
+    fun revokeAccess(
+        email: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val account = Account(
+            email,
+            "com.google"
+        )
+
+        val request = RevokeAccessRequest
+            .builder()
+            .setAccount(account)
+            .setScopes(
+                listOf(
+                    Scope(DRIVE_FILE_SCOPE)
+                )
+            )
+            .build()
+
+        authorizationClient
+            .revokeAccess(request)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
     }
 }

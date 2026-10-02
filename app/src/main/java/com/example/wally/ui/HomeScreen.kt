@@ -59,7 +59,8 @@ fun HomeScreen(
     expenseDao: ExpenseDao,
     dueDao: DueDao,
     tagDao: TagDao,
-    onConnectGoogleDrive: () -> Unit
+    onConnectGoogleDrive: () -> Unit,
+    onDisconnectGoogleDrive: () -> Unit
 
 ) {
     var mode by remember { mutableStateOf(EntryMode.PAYMENT) }
@@ -164,10 +165,12 @@ fun HomeScreen(
             todayDues = todayDues,
             peopleDue = peopleDue,
             onBack = { showStats = false },
-            onConnectGoogleDrive = onConnectGoogleDrive
+            onConnectGoogleDrive = onConnectGoogleDrive,
+            onDisconnectGoogleDrive = onDisconnectGoogleDrive
         )
         return
     }
+
 
     Scaffold(
         topBar = {

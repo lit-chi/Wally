@@ -25,11 +25,21 @@ fun StatsScreen(
     todayDues: Int,
     peopleDue: Int,
     onBack: () -> Unit,
-    onConnectGoogleDrive: () -> Unit
+    onConnectGoogleDrive: () -> Unit,
+    onDisconnectGoogleDrive: () -> Unit
 ) {
     val total = todayPayments + todayDues
     var showSettings by remember { mutableStateOf(false) }
-
+    if (showSettings) {
+        SettingsScreen(
+            onBack = {
+                showSettings = false
+            },
+            onConnectGoogleDrive = onConnectGoogleDrive,
+            onDisconnectGoogleDrive = onDisconnectGoogleDrive
+        )
+        return
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -108,44 +118,7 @@ fun StatsScreen(
             )
         }
     }
-    if (showSettings) {
-        AlertDialog(
-            onDismissRequest = {
-                showSettings = false
-            },
-            title = {
-                Text("SETTINGS")
-            },
-            text = {
-                Column {
-                    Text("Google Drive")
 
-                    Spacer(
-                        modifier = Modifier.height(12.dp)
-                    )
-
-                    Button(
-                        onClick = {
-                            showSettings = false
-                            onConnectGoogleDrive()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("CONNECT GOOGLE DRIVE")
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showSettings = false
-                    }
-                ) {
-                    Text("CLOSE")
-                }
-            }
-        )
-    }
 }
 
 @Composable

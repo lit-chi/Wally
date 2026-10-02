@@ -8,7 +8,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.MultipartBody
-import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import java.io.File
@@ -47,6 +46,50 @@ class GoogleDriveClient(
                 fileId = existingFileId,
                 xlsxFile = xlsxFile
             )
+        }
+    }
+
+    suspend fun getUserEmail(): String = withContext(Dispatchers.IO) {
+
+        val url = "$DRIVE_API/about"
+            .toHttpUrl()
+            .newBuilder()
+            .addQueryParameter(
+                "fields",
+                "user(emailAddress)"
+            )
+            .build()
+
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .header(
+                "Authorization",
+                "Bearer $accessToken"
+            )
+            .build()
+
+        client.newCall(request).execute().use { response ->
+
+            val body = response.body?.string().orEmpty()
+
+            if (!response.isSuccessful) {
+                throw IOException(
+                    "Drive user info failed: ${response.code} $body"
+                )
+            }
+
+            val json = JSONObject(body)
+
+            val email = json
+                .getJSONObject("user")
+                .optString("emailAddress")
+
+            if (email.isBlank()) {
+                throw IOException("Google account email was not returned.")
+            }
+
+            email
         }
     }
 
@@ -109,32 +152,20 @@ class GoogleDriveClient(
             .put("name", FILE_NAME)
             .put("mimeType", MIME_TYPE)
 
+        val metadataBody = metadata
+            .toString()
+            .toRequestBody(
+                "application/json; charset=UTF-8".toMediaType()
+            )
+
+        val fileBody = xlsxFile.asRequestBody(
+            MIME_TYPE.toMediaType()
+        )
+
         val multipartBody = MultipartBody.Builder()
-            .setType("related".toMediaType())
-
-            .addPart(
-                Headers.headersOf(
-                    "Content-Type",
-                    "application/json; charset=UTF-8"
-                ),
-                metadata
-                    .toString()
-                    .toRequestBody(
-                        "application/json; charset=UTF-8"
-                            .toMediaType()
-                    )
-            )
-
-            .addPart(
-                Headers.headersOf(
-                    "Content-Type",
-                    MIME_TYPE
-                ),
-                xlsxFile.asRequestBody(
-                    MIME_TYPE.toMediaType()
-                )
-            )
-
+            .setType("multipart/related".toMediaType())
+            .addPart(metadataBody)
+            .addPart(fileBody)
             .build()
 
         val url = "$DRIVE_UPLOAD_API/files"

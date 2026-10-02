@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation("com.squareup.okhttp3:okhttp:5.5.0")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

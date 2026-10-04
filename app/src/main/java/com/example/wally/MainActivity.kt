@@ -12,9 +12,33 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
-
+import java.time.DayOfWeek
+import java.time.Duration
+import java.time.ZonedDateTime
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.PeriodicWorkRequestBuilder
+import java.util.concurrent.TimeUnit
+import androidx.work.ExistingPeriodicWorkPolicy
 import com.example.wally.data.SettingsDataStore
 class MainActivity : ComponentActivity() {
+
+    private fun delayUntilNextMonday(): Long {
+        val now = ZonedDateTime.now()
+
+        var nextMonday = now
+            .with(DayOfWeek.MONDAY)
+            .withHour(0)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0)
+
+        if (!nextMonday.isAfter(now)) {
+            nextMonday = nextMonday.plusWeeks(1)
+        }
+
+        return Duration.between(now, nextMonday).toMillis()
+    }
     private lateinit var googleDriveAuth: GoogleDriveAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +47,54 @@ class MainActivity : ComponentActivity() {
 
         val database = ExpenseDatabase.getDatabase(applicationContext)
         val settingsDataStore = SettingsDataStore(applicationContext)
+
+//        val weeklyWorkRequest =
+//            PeriodicWorkRequestBuilder<WeeklyExportWorker>(
+//                7,
+//                TimeUnit.DAYS
+//            )
+//                .setInitialDelay(
+//                    10,
+//                    TimeUnit.SECONDS
+//                )
+//                .build()
+//        Log.d(
+//            "WallyWork",
+//            "Creating periodic work: ${weeklyWorkRequest.id}"
+//        )
+//
+//        WorkManager
+//            .getInstance(applicationContext)
+//            .enqueueUniquePeriodicWork(
+//                "WallyWeeklyExport",
+//                ExistingPeriodicWorkPolicy.KEEP,
+//                weeklyWorkRequest
+//            )
+//
+//        Log.d(
+//            "WallyWork",
+//            "Enqueued periodic work: ${weeklyWorkRequest.id}"
+//
+        val workManager = WorkManager.getInstance(applicationContext)
+
+        workManager.cancelUniqueWork("WallyWeeklyExport")
+
+        val weeklyWorkRequest =
+            PeriodicWorkRequestBuilder<WeeklyExportWorker>(
+                7,
+                TimeUnit.DAYS
+            )
+                .setInitialDelay(
+                    10,
+                    TimeUnit.SECONDS
+                )
+                .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            "WallyWeeklyExport",
+            ExistingPeriodicWorkPolicy.KEEP,
+            weeklyWorkRequest
+        )
 
         setContent {
             WallyTheme {
@@ -60,7 +132,6 @@ class MainActivity : ComponentActivity() {
 
                                         val fileId =
                                             driveClient.uploadOrUpdate(excelFile)
-
                                             settingsDataStore.saveGoogleAccount(
                                             email = email,
                                             fileId = fileId

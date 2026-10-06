@@ -15,12 +15,13 @@ import java.io.File
 import java.time.DayOfWeek
 import java.time.Duration
 import java.time.ZonedDateTime
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.PeriodicWorkRequestBuilder
 import java.util.concurrent.TimeUnit
 import androidx.work.ExistingPeriodicWorkPolicy
 import com.example.wally.data.SettingsDataStore
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
 class MainActivity : ComponentActivity() {
 
     private fun delayUntilNextMonday(): Long {
@@ -41,6 +42,27 @@ class MainActivity : ComponentActivity() {
     }
     private lateinit var googleDriveAuth: GoogleDriveAuth
 
+    private fun scheduleWeeklyExport() {
+        val weeklyWorkRequest =
+            PeriodicWorkRequestBuilder<WeeklyExportWorker>(
+                7,
+                TimeUnit.DAYS
+            )
+                .setInitialDelay(
+                    delayUntilNextMonday(),
+                    TimeUnit.MILLISECONDS
+                )
+                .build()
+
+        WorkManager
+            .getInstance(applicationContext)
+            .enqueueUniquePeriodicWork(
+                "WallyWeeklyExport",
+                ExistingPeriodicWorkPolicy.KEEP,
+                weeklyWorkRequest
+            )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         googleDriveAuth = GoogleDriveAuth(this)
@@ -48,56 +70,33 @@ class MainActivity : ComponentActivity() {
         val database = ExpenseDatabase.getDatabase(applicationContext)
         val settingsDataStore = SettingsDataStore(applicationContext)
 
-//        val weeklyWorkRequest =
-//            PeriodicWorkRequestBuilder<WeeklyExportWorker>(
-//                7,
-//                TimeUnit.DAYS
-//            )
-//                .setInitialDelay(
-//                    10,
-//                    TimeUnit.SECONDS
-//                )
-//                .build()
-//        Log.d(
-//            "WallyWork",
-//            "Creating periodic work: ${weeklyWorkRequest.id}"
-//        )
-//
-//        WorkManager
-//            .getInstance(applicationContext)
-//            .enqueueUniquePeriodicWork(
-//                "WallyWeeklyExport",
-//                ExistingPeriodicWorkPolicy.KEEP,
-//                weeklyWorkRequest
-//            )
-//
-//        Log.d(
-//            "WallyWork",
-//            "Enqueued periodic work: ${weeklyWorkRequest.id}"
-//
-        val workManager = WorkManager.getInstance(applicationContext)
+        lifecycleScope.launch {
+            settingsDataStore.googleDriveNeedsReconnect.collect { needsReconnect ->
+                if (needsReconnect) {
+                    Log.d(
+                        "GoogleDrive",
+                        "Google Drive needs to be reconnected"
+                    )
+                }
+            }
+        }
 
-        workManager.cancelUniqueWork("WallyWeeklyExport")
+        lifecycleScope.launch {
+            val fileId =
+                settingsDataStore.googleDriveFileId.first()
 
-        val weeklyWorkRequest =
-            PeriodicWorkRequestBuilder<WeeklyExportWorker>(
-                7,
-                TimeUnit.DAYS
-            )
-                .setInitialDelay(
-                    10,
-                    TimeUnit.SECONDS
-                )
-                .build()
+            if (fileId != null) {
+                scheduleWeeklyExport()
+            }
+        }
 
-        workManager.enqueueUniquePeriodicWork(
-            "WallyWeeklyExport",
-            ExistingPeriodicWorkPolicy.KEEP,
-            weeklyWorkRequest
-        )
 
         setContent {
             WallyTheme {
+                val googleDriveNeedsReconnect by settingsDataStore
+                    .googleDriveNeedsReconnect
+                    .collectAsStateWithLifecycle(initialValue = false)
+
                 HomeScreen(
                     expenseDao = database.expenseDao(),
                     dueDao = database.dueDao(),
@@ -132,10 +131,14 @@ class MainActivity : ComponentActivity() {
 
                                         val fileId =
                                             driveClient.uploadOrUpdate(excelFile)
-                                            settingsDataStore.saveGoogleAccount(
+
+                                        settingsDataStore.saveGoogleAccount(
                                             email = email,
                                             fileId = fileId
                                         )
+
+                                        scheduleWeeklyExport()
+
                                         Log.d(
                                             "GoogleDrive",
                                             "Excel uploaded. File ID: $fileId"
@@ -176,6 +179,9 @@ class MainActivity : ComponentActivity() {
                                 onSuccess = {
                                     lifecycleScope.launch {
                                         settingsDataStore.clearGoogleAccount()
+                                        WorkManager
+                                            .getInstance(applicationContext)
+                                            .cancelUniqueWork("WallyWeeklyExport")
 
                                         Log.d(
                                             "GoogleDriveAuth",
@@ -193,7 +199,9 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                    }                )
+                    },
+                    googleDriveNeedsReconnect = googleDriveNeedsReconnect
+                )
             }
         }
     }

@@ -27,6 +27,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.time.DayOfWeek
 import java.time.ZoneId
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 
 enum class EntryMode {
@@ -60,7 +62,8 @@ fun HomeScreen(
     dueDao: DueDao,
     tagDao: TagDao,
     onConnectGoogleDrive: () -> Unit,
-    onDisconnectGoogleDrive: () -> Unit
+    onDisconnectGoogleDrive: () -> Unit,
+    googleDriveNeedsReconnect: Boolean
 
 ) {
     var mode by remember { mutableStateOf(EntryMode.PAYMENT) }
@@ -137,7 +140,33 @@ fun HomeScreen(
     val peopleDue by dueDao.getPeopleDue()
         .collectAsStateWithLifecycle(initialValue = 0)
 
+    var showSettings by remember { mutableStateOf(false) }
 
+    if (googleDriveNeedsReconnect) {
+        AlertDialog(
+            onDismissRequest = {
+                // Don't clear the flag here
+            },
+            title = {
+                Text("Google Drive needs attention")
+            },
+            text = {
+                Text(
+                    "Your weekly backup could not access Google Drive. " +
+                            "Please reconnect Google Drive in Settings."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSettings = true
+                    }
+                ) {
+                    Text("OPEN SETTINGS")
+                }
+            }
+        )
+    }
 
 
     fun goNext(){
@@ -165,6 +194,17 @@ fun HomeScreen(
             todayDues = todayDues,
             peopleDue = peopleDue,
             onBack = { showStats = false },
+            onConnectGoogleDrive = onConnectGoogleDrive,
+            onDisconnectGoogleDrive = onDisconnectGoogleDrive
+        )
+        return
+    }
+
+    if (showSettings) {
+        SettingsScreen(
+            onBack = {
+                showSettings = false
+            },
             onConnectGoogleDrive = onConnectGoogleDrive,
             onDisconnectGoogleDrive = onDisconnectGoogleDrive
         )

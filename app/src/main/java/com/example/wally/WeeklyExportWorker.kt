@@ -30,16 +30,18 @@ class WeeklyExportWorker(
             val dueDao = database.dueDao()
             val tagDao = database.tagDao()
 
+
+
             // Settings
             val googleDriveFileId =
                 settingsDataStore.googleDriveFileId.first()
-//
-//            if (googleDriveFileId == null) {
-//                println("Google Drive is not connected. Skipping export.")
-//                return Result.success()
-//            }
-//
-//            println("Google Drive file ID: $googleDriveFileId")
+
+            if (googleDriveFileId == null) {
+                println("Google Drive is not connected. Skipping export.")
+                return Result.success()
+            }
+
+            println("Google Drive file ID: $googleDriveFileId")
             val tokenProvider =
                 GoogleDriveTokenProvider(applicationContext)
 
@@ -51,7 +53,7 @@ class WeeklyExportWorker(
                     "Google Drive authorization is no longer available. User needs to reconnect.",
                     e
                 )
-
+                settingsDataStore.setGoogleDriveNeedsReconnect()
                 return Result.success()
             }
 
